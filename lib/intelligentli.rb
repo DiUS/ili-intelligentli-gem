@@ -1,5 +1,6 @@
 require 'httparty'
 require 'httmultiparty'
+require 'gibberish'
 
 class Intelligentli
   def initialize base_uri, key, secret_key
