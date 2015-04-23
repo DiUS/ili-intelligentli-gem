@@ -32,7 +32,7 @@ class StreamWatcher
 
   def headers
     date       = Time.now.httpdate
-    token      = Gibberish::HMAC(@@secret_key, "GET#{@uri}#{date}", digest: :sha256)
+    token      = Gibberish::HMAC256(@@secret_key, "GET#{@uri}#{date}")
     { 'User-key' => @@key, 'User-token' => token, 'Date' => date }
   end
 

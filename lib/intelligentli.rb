@@ -26,7 +26,7 @@ class Intelligentli
   def build_headers verb, uri, body = nil, content_type = 'application/json'
     md5sum  = body ? Digest::MD5.hexdigest(body) : ''
     date    = Time.now.httpdate
-    token   = Gibberish::HMAC(@secret_key, "#{verb.upcase}#{uri}#{md5sum}#{date}", digest: :sha256)
+    token   = Gibberish::HMAC256(@secret_key, "#{verb.upcase}#{uri}#{md5sum}#{date}")
 
     headers = {
       'User-key'     => @key,
