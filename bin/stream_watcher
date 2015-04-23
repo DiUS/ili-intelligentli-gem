@@ -1,0 +1,20 @@
+#!/usr/bin/env ruby
+
+require 'eventmachine'
+require_relative '../lib/stream_watcher'
+
+def login *args
+  StreamWatcher.login *args
+end
+
+def watch uri, options = {}, &block
+  @watchers << StreamWatcher.new(uri, options, block)
+end
+
+@watchers = []
+
+load ARGV[0]
+
+EM.run do
+  @watchers.each { |w| w.run }
+end
