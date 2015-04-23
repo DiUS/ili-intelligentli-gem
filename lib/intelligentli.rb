@@ -3,8 +3,8 @@ require 'httmultiparty'
 require 'gibberish'
 
 class Intelligentli
-  def initialize base_uri, key, secret_key
-    @base_uri   = base_uri
+  def initialize server, key, secret_key
+    @server     = server
     @key        = key
     @secret_key = secret_key
   end
@@ -40,7 +40,7 @@ class Intelligentli
   def do_request verb, uri, body = nil
     headers = build_headers verb, uri, body
 
-    HTTParty.send verb, "#{@base_uri}#{uri}", headers: headers, body: body
+    HTTParty.send verb, "#{@server}#{uri}", headers: headers, body: body
   end
 
   def do_multi_request verb, uri, body
@@ -55,6 +55,6 @@ class Intelligentli
       end
     end
 
-    HTTMultiParty.send verb, "#{@base_uri}#{uri}", headers: headers, query: query
+    HTTMultiParty.send verb, "#{@server}#{uri}", headers: headers, query: query
   end
 end
