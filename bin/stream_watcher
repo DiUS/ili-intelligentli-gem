@@ -3,18 +3,24 @@
 require 'eventmachine'
 require_relative '../lib/stream_watcher'
 
-def login *args
-  StreamWatcher.login *args
-end
+lambda {
+  watchers = []
 
-def watch uri, options = {}, &block
-  @watchers << StreamWatcher.new(uri, options, block)
-end
+  Kernel.send :define_method, :login do |*args|
+    StreamWatcher.login *args
+  end
 
-@watchers = []
+  Kernel.send :define_method, :watch do |uri, options = {}, &block|
+    watchers << StreamWatcher.new(uri, options, block)
+  end
+
+  Kernel.send :define_method, :run do
+    EM.run do
+      watchers.each { |w| w.run }
+    end
+  end
+}.call
 
 load ARGV[0]
 
-EM.run do
-  @watchers.each { |w| w.run }
-end
+run
