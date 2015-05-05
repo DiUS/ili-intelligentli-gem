@@ -1,8 +1,11 @@
 require 'httparty'
 require 'httmultiparty'
-require 'gibberish'
+require_relative 'authentication'
 
 class Intelligentli
+
+  include Authentication
+
   def initialize server, key, secret_key
     @server     = server
     @key        = key
@@ -22,20 +25,6 @@ class Intelligentli
   end
 
   private
-
-  def build_headers verb, uri, body = nil, content_type = 'application/json'
-    md5sum  = body ? Digest::MD5.hexdigest(body) : ''
-    date    = Time.now.httpdate
-    token   = Gibberish::HMAC256(@secret_key, "#{verb.upcase}#{uri}#{md5sum}#{date}")
-
-    headers = {
-      'User-key'     => @key,
-      'User-token'   => token,
-      'Date'         => date
-    }
-    headers['Content-Type'] = content_type if content_type
-    headers
-  end
 
   def do_request verb, uri, body = nil
     headers = build_headers verb, uri, body
