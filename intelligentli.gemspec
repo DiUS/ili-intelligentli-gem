@@ -20,4 +20,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'eventmachine'
   s.add_runtime_dependency 'faye-websocket'
   s.add_runtime_dependency 'chronic_duration'
+
+  s.add_development_dependency 'rspec'
+  s.add_development_dependency 'timecop'
 end
