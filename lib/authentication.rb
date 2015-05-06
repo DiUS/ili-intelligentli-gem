@@ -2,7 +2,7 @@ require 'gibberish'
 
 module Authentication
 
-  def build_headers verb, uri, body = nil, content_type = 'application/json'
+  def self.build_headers key, secret, verb, uri, body = nil, content_type = 'application/json'
     md5sum  = body ? Digest::MD5.hexdigest(body) : ''
     date    = Time.now.httpdate
     token   = Gibberish::HMAC256(secret, "#{verb.upcase}#{uri}#{md5sum}#{date}")

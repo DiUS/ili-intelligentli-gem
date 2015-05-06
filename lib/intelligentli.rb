@@ -5,9 +5,6 @@ require_relative 'authentication'
 
 class Intelligentli
 
-  include Authentication
-  attr_reader :server, :key, :secret
-
   def initialize server, key, secret
     @server, @key, @secret = server, key, secret
   end
@@ -25,8 +22,8 @@ class Intelligentli
   end
 
   def watch uri
-    headers = build_headers 'get', uri
-    ws = Faye::WebSocket::Client.new("#{server}#{uri}", nil, headers: headers)
+    headers = Authentication.build_headers @key, @secret, 'get', uri
+    ws = Faye::WebSocket::Client.new("#{@server}#{uri}", nil, headers: headers)
     ws.on(:open) { |event| ws.send('{"message_sequence": 0}') }
     ws.on(:message) do |event|
       payload = JSON.parse(event.data, symbolize_names: true)
@@ -39,13 +36,13 @@ class Intelligentli
   private
 
   def do_request verb, uri, body = nil
-    headers = build_headers verb, uri, body
-    response = HTTParty.send verb, "#{server}#{uri}", headers: headers, body: body
+    headers = Authentication.build_headers @key, @secret, verb, uri, body
+    response = HTTParty.send verb, "#{@server}#{uri}", headers: headers, body: body
     JSON.parse(response.body, symbolize_names: true)
   end
 
   def do_multi_request verb, uri, body
-    headers = build_headers verb, uri, nil, nil
+    headers = Authentication.build_headers @key, @secret, verb, uri, nil, nil
 
     query = { metadata: body }
     body = JSON.parse(body, symbolize_names: true)
@@ -56,7 +53,7 @@ class Intelligentli
       end
     end
 
-    response = HTTMultiParty.send verb, "#{server}#{uri}", headers: headers, query: query
+    response = HTTMultiParty.send verb, "#{@server}#{uri}", headers: headers, query: query
     JSON.parse(response.body, symbolize_names: true)
   end
 end
