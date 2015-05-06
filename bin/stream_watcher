@@ -2,22 +2,22 @@
 
 require 'eventmachine'
 require_relative '../lib/stream_watcher'
+require_relative '../lib/intelligentli'
 
 lambda {
+  ili = nil
   watchers = []
 
   Kernel.send :define_method, :login do |*args|
-    StreamWatcher.login *args
+    ili = Intelligentli.new *args
   end
 
   Kernel.send :define_method, :watch do |uri, options = {}, &block|
-    watchers << StreamWatcher.new(uri, options, block)
+    watchers << Proc.new { StreamWatcher.new(ili, uri, options, block).run }
   end
 
   Kernel.send :define_method, :run do
-    EM.run do
-      watchers.each { |w| w.run }
-    end
+    EM.run { watchers.each(&:call) }
   end
 }.call
 

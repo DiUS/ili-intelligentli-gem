@@ -1,26 +1,11 @@
 require 'faye/websocket'
 require 'json'
 require 'chronic_duration'
-require_relative 'intelligentli'
 
 class StreamWatcher
 
-  include Authentication
-
-  COMMON_SYMBOLS = %i(server key secret)
-  COMMON_SYMBOLS.each { |symbol| define_method(symbol) { self.class.send(symbol) } }
-
-  class << self
-    attr_reader *COMMON_SYMBOLS
-
-    def login server, key, secret
-      @server, @key, @secret = server.gsub(/^http/, 'ws'), key, secret
-    end
-  end
-
-  def initialize uri, options, block
-    @uri    = uri
-    @block  = block
+  def initialize ili, uri, options, block
+    @ili, @uri, @block = ili, uri, block
     @data   = []
     @span   = ChronicDuration.parse(options[:span]) if options[:span]
     @limit  = options[:limit]
@@ -28,8 +13,7 @@ class StreamWatcher
   end
 
   def run
-    ili = Intelligentli.new(server, key, secret)
-    ili.watch @uri do |message|
+    @ili.watch @uri do |message|
       extract_data(message)
       @block.call(@data)
     end
