@@ -26,23 +26,31 @@ describe Intelligentli do
   subject { Intelligentli.new(server, key, secret) }
 
   context 'streams' do
+    let (:response) { double body: {}.to_json }
+
     it 'gets a list' do
-      expect(HTTParty).to receive(:get).with("#{server}/api/v2/streams", {headers: headers, body: nil} )
+      expect(HTTParty).to receive(:get)
+        .with("#{server}/api/v2/streams", {headers: headers, body: nil} )
+        .and_return(response)
       subject.streams
     end
 
     it 'uploads' do
       body = 'something'
-      expect(HTTParty).to receive(:post).with("#{server}/api/v2/streams", {headers: headers, body: body} )
+      expect(HTTParty).to receive(:post)
+        .with("#{server}/api/v2/streams", {headers: headers, body: body} )
+        .and_return(response)
       subject.upload_stream body
     end
   end
 
   context 'watch' do
-    let(:uri)       { '/uri' }
-    let(:websocket) { double }
+    let(:uri)             { '/uri' }
+    let(:websocket)       { double }
     let(:initial_message) {'{"message_sequence": 0}'}
-    let(:event) { 'event' }
+    let(:message)         { {hello: 'world'} }
+    let(:payload)         { {message: message.to_json}.to_json  }
+    let(:event)           { double(data: payload) }
 
     it 'makes websocket request' do
       expect(Faye::WebSocket::Client).to receive(:new).with("#{server}#{uri}", nil, headers: headers).and_return (websocket.as_null_object)
@@ -67,7 +75,7 @@ describe Intelligentli do
       allow(websocket).to receive(:on).with(:message).and_yield(event)
       allow(websocket).to receive(:on).with(:close)
 
-      expect { |b| subject.watch(uri, &b) }.to yield_with_args(event)
+      expect { |b| subject.watch(uri, &b) }.to yield_with_args(message)
     end
 
     it 'closes the connection' do

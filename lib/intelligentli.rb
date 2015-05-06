@@ -27,17 +27,21 @@ class Intelligentli
   def watch uri
     headers = build_headers 'get', uri
     ws = Faye::WebSocket::Client.new("#{server}#{uri}", nil, headers: headers)
-    ws.on(:open)    { |event| ws.send('{"message_sequence": 0}') }
-    ws.on(:message) { |event| yield(event) }
-    ws.on(:close)   { |event| ws = nil }
+    ws.on(:open) { |event| ws.send('{"message_sequence": 0}') }
+    ws.on(:message) do |event|
+      payload = JSON.parse(event.data, symbolize_names: true)
+      message = JSON.parse(payload[:message], symbolize_names: true)
+      yield message
+    end
+    ws.on(:close) { |event| ws = nil }
   end
 
   private
 
   def do_request verb, uri, body = nil
     headers = build_headers verb, uri, body
-
-    HTTParty.send verb, "#{server}#{uri}", headers: headers, body: body
+    response = HTTParty.send verb, "#{server}#{uri}", headers: headers, body: body
+    JSON.parse(response.body, symbolize_names: true)
   end
 
   def do_multi_request verb, uri, body
@@ -52,6 +56,7 @@ class Intelligentli
       end
     end
 
-    HTTMultiParty.send verb, "#{server}#{uri}", headers: headers, query: query
+    response = HTTMultiParty.send verb, "#{server}#{uri}", headers: headers, query: query
+    JSON.parse(response.body, symbolize_names: true)
   end
 end
