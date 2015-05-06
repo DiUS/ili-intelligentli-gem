@@ -1,10 +1,11 @@
 require 'faye/websocket'
 require 'json'
-require 'gibberish'
-require 'time'
 require 'chronic_duration'
+require_relative 'authentication'
 
 class StreamWatcher
+
+  include Authentication
 
   def self.login server, key, secret_key
     @@server     = server.gsub(/^http/, 'ws')
@@ -19,9 +20,13 @@ class StreamWatcher
     @span   = ChronicDuration.parse(options[:span]) if options[:span]
     @limit  = options[:limit]
     puts "WARNING: Unbounded memory usage for #{uri}" unless @span || @limit
+
+    @key = @@key
+    @secret_key = @@secret_key
   end
 
   def run
+    headers = build_headers 'get', @uri
     ws = Faye::WebSocket::Client.new("#{@@server}#{@uri}", nil, headers: headers)
     ws.on(:open)    { |event| ws.send('{"message_sequence": 0}') }
     ws.on(:message) { |event| extract_data(event); @block.call(@data) }
@@ -29,12 +34,6 @@ class StreamWatcher
   end
 
   private
-
-  def headers
-    date       = Time.now.httpdate
-    token      = Gibberish::HMAC256(@@secret_key, "GET#{@uri}#{date}")
-    { 'User-key' => @@key, 'User-token' => token, 'Date' => date }
-  end
 
   def extract_data(event)
     @data.concat data_points event
