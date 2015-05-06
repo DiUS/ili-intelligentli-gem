@@ -1,7 +1,7 @@
 require 'faye/websocket'
 require 'json'
 require 'chronic_duration'
-require_relative 'authentication'
+require_relative 'intelligentli'
 
 class StreamWatcher
 
@@ -28,11 +28,11 @@ class StreamWatcher
   end
 
   def run
-    headers = build_headers 'get', @uri
-    ws = Faye::WebSocket::Client.new("#{server}#{@uri}", nil, headers: headers)
-    ws.on(:open)    { |event| ws.send('{"message_sequence": 0}') }
-    ws.on(:message) { |event| extract_data(event); @block.call(@data) }
-    ws.on(:close)   { |event| ws = nil }
+    ili = Intelligentli.new(server, key, secret)
+    ili.watch @uri do |event|
+      extract_data(event)
+      @block.call(@data)
+    end
   end
 
   private

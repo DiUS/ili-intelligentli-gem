@@ -1,5 +1,6 @@
 require 'httparty'
 require 'httmultiparty'
+require 'faye/websocket'
 require_relative 'authentication'
 
 class Intelligentli
@@ -21,6 +22,14 @@ class Intelligentli
 
   def upload_octet_stream(body) # metadata json
     do_multi_request 'post', '/api/v2/octet_streams', body
+  end
+
+  def watch uri
+    headers = build_headers 'get', uri
+    ws = Faye::WebSocket::Client.new("#{server}#{uri}", nil, headers: headers)
+    ws.on(:open)    { |event| ws.send('{"message_sequence": 0}') }
+    ws.on(:message) { |event| yield(event) }
+    ws.on(:close)   { |event| ws = nil }
   end
 
   private
