@@ -7,10 +7,15 @@ class StreamWatcher
 
   include Authentication
 
-  def self.login server, key, secret_key
-    @@server     = server.gsub(/^http/, 'ws')
-    @@key        = key
-    @@secret_key = secret_key
+  COMMON_SYMBOLS = %i(server key secret)
+  COMMON_SYMBOLS.each { |symbol| define_method(symbol) { self.class.send(symbol) } }
+
+  class << self
+    attr_reader *COMMON_SYMBOLS
+
+    def login server, key, secret
+      @server, @key, @secret = server.gsub(/^http/, 'ws'), key, secret
+    end
   end
 
   def initialize uri, options, block
@@ -24,18 +29,10 @@ class StreamWatcher
 
   def run
     headers = build_headers 'get', @uri
-    ws = Faye::WebSocket::Client.new("#{@@server}#{@uri}", nil, headers: headers)
+    ws = Faye::WebSocket::Client.new("#{server}#{@uri}", nil, headers: headers)
     ws.on(:open)    { |event| ws.send('{"message_sequence": 0}') }
     ws.on(:message) { |event| extract_data(event); @block.call(@data) }
     ws.on(:close)   { |event| ws = nil }
-  end
-
-  def key
-    @@key
-  end
-
-  def secret
-    @@secret_key
   end
 
   private
