@@ -1,25 +1,56 @@
 describe Authentication do
 
+  # request parameters
+  let(:key)          { 'key' }
+  let(:secret)       { 'secret' }
+  let(:uri)          { 'uri' }
+  let(:body)         { 'body' }
+
+  # derived parameters
+  let(:time)         { Time.utc(2015, 5, 7) }
+  let(:time_rfc2616) { time.httpdate}
+  let(:hash)         { 'hash' }
+
   subject { Class.new { include Authentication }.new }
 
   before do
-    Timecop.freeze Time.utc(2015, 5, 7)
-
-    subject.instance_variable_set :@key,        'key'
-    subject.instance_variable_set :@secret_key, 'secret'
+    Timecop.freeze time
+    subject.instance_variable_set :@key,        key
+    subject.instance_variable_set :@secret_key, secret
   end
   after  { Timecop.return }
 
-  it 'computes md5sum of body' do
-    body = 'something'
-    expect(Digest::MD5).to receive(:hexdigest).with(body).and_return('hash')
-    subject.build_headers 'post', 'uri', body
+  context 'uploading' do
+    it 'computes md5sum of body' do
+      expect(Digest::MD5).to receive(:hexdigest).with(body).and_return(hash)
+      subject.build_headers 'post', uri, body
+    end
+
+    it 'computes HMAC256 of verb, uri, content, and date' do
+      allow(Digest::MD5).to receive(:hexdigest).and_return(hash)
+
+      expect(Gibberish).to receive(:HMAC256).with(secret, "POST#{uri}#{hash}#{time_rfc2616}")
+      headers = subject.build_headers 'post', uri, body
+    end
   end
 
-  it 'gets current date in RFC2616 format'
-  it 'computes HMAC256 of verb, uri, content, and date'
-  it 'builds a header'
-  it 'includes a default content-type'
-  it 'excludes content-type if set to nil'
-  it 'includes specified content-type'
+  context 'downloading' do
+    it 'computes HMAC256 of verb, uri, and date' do
+      expect(Gibberish).to receive(:HMAC256).with(secret, "GET#{uri}#{time_rfc2616}")
+      headers = subject.build_headers 'get', uri
+    end
+  end
+
+  context 'common' do
+    it 'includes current date in RFC2616 format in header' do
+      headers = subject.build_headers 'get', uri
+      expect(headers['Date']).to eq time_rfc2616
+    end
+
+    it 'includes a default content-type' do
+      headers = subject.build_headers 'get', uri
+      expect(headers['Content-Type']).to eq 'application/json'
+    end
+  end
+
 end
