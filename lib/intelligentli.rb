@@ -5,11 +5,10 @@ require_relative 'authentication'
 class Intelligentli
 
   include Authentication
+  attr_reader :server, :key, :secret
 
-  def initialize server, key, secret_key
-    @server     = server
-    @key        = key
-    @secret_key = secret_key
+  def initialize server, key, secret
+    @server, @key, @secret = server, key, secret
   end
 
   def streams
@@ -29,7 +28,7 @@ class Intelligentli
   def do_request verb, uri, body = nil
     headers = build_headers verb, uri, body
 
-    HTTParty.send verb, "#{@server}#{uri}", headers: headers, body: body
+    HTTParty.send verb, "#{server}#{uri}", headers: headers, body: body
   end
 
   def do_multi_request verb, uri, body
@@ -44,6 +43,6 @@ class Intelligentli
       end
     end
 
-    HTTMultiParty.send verb, "#{@server}#{uri}", headers: headers, query: query
+    HTTMultiParty.send verb, "#{server}#{uri}", headers: headers, query: query
   end
 end

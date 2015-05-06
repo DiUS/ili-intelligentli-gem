@@ -20,9 +20,6 @@ class StreamWatcher
     @span   = ChronicDuration.parse(options[:span]) if options[:span]
     @limit  = options[:limit]
     puts "WARNING: Unbounded memory usage for #{uri}" unless @span || @limit
-
-    @key = @@key
-    @secret_key = @@secret_key
   end
 
   def run
@@ -31,6 +28,14 @@ class StreamWatcher
     ws.on(:open)    { |event| ws.send('{"message_sequence": 0}') }
     ws.on(:message) { |event| extract_data(event); @block.call(@data) }
     ws.on(:close)   { |event| ws = nil }
+  end
+
+  def key
+    @@key
+  end
+
+  def secret
+    @@secret_key
   end
 
   private

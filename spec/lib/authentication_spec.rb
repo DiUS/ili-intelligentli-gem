@@ -11,13 +11,18 @@ describe Authentication do
   let(:time_rfc2616) { time.httpdate}
   let(:hash)         { 'hash' }
 
-  subject { Class.new { include Authentication }.new }
+  subject {
+    Class.new do
+      include Authentication
+      attr_reader :key, :secret
 
-  before do
-    Timecop.freeze time
-    subject.instance_variable_set :@key,        key
-    subject.instance_variable_set :@secret_key, secret
-  end
+      def initialize key, secret
+        @key, @secret = key, secret
+      end
+    end.new(key, secret)
+  }
+
+  before { Timecop.freeze time }
   after  { Timecop.return }
 
   context 'uploading' do
