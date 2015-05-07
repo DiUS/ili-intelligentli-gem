@@ -1,5 +1,3 @@
-require 'faye/websocket'
-require 'json'
 require 'chronic_duration'
 require_relative 'utilities'
 
