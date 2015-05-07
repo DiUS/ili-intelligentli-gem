@@ -1,8 +1,9 @@
 #!/usr/bin/env ruby
 
 require 'eventmachine'
-require_relative '../lib/stream_watcher'
 require_relative '../lib/intelligentli'
+require_relative '../lib/observation_window'
+require_relative '../lib/utilities'
 
 lambda {
   ili = nil
@@ -13,7 +14,14 @@ lambda {
   end
 
   Kernel.send :define_method, :watch do |uri, options = {}, &block|
-    watchers << Proc.new { StreamWatcher.new(ili, uri, options, block).run }
+    watchers << Proc.new do
+      observation = ObservationWindow.new(options)
+      ili.watch uri do |message|
+        new_data = Utilities.epoch_to_time message[:data], message[:time_precision]
+        observation.concat new_data
+        block.call observation.data
+      end
+    end
   end
 
   Kernel.send :define_method, :run do
