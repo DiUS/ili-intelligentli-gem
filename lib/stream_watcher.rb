@@ -1,6 +1,7 @@
 require 'faye/websocket'
 require 'json'
 require 'chronic_duration'
+require_relative 'utilities'
 
 class StreamWatcher
 
@@ -22,27 +23,11 @@ class StreamWatcher
   private
 
   def extract_data(message)
-    @data.concat data_points(message)
+    new_data = Utilities.epoch_to_time(message[:data], message[:time_precision])
+    @data.concat new_data
     @data = @data.sort_by { |point| point[:time] }
     @data = @data.reject  { |point| point[:time] < Time.now - @span } if @span
     @data = @data[-@limit..-1] if @limit && @data.length > @limit
-  end
-
-  def data_points(message)
-    divisor = case message[:time_precision]
-              when 'us'
-                1000000
-              when 'ms'
-                1000
-              else
-                1
-              end
-    message[:data].map do |point|
-      {
-        time: Time.at(point[:time]/divisor),
-        value: point[:value]
-      }
-    end
   end
 
 end
