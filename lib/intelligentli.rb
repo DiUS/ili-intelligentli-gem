@@ -13,12 +13,12 @@ class Intelligentli
     do_request 'get', '/api/v2/streams'
   end
 
-  def upload_stream(body) # json
-    do_request 'post', '/api/v2/streams', body
+  def upload_stream(body)
+    do_request 'post', '/api/v2/streams', body.to_json
   end
 
-  def upload_octet_stream(body) # metadata json
-    do_multi_request 'post', '/api/v2/octet_streams', body
+  def upload_octet_stream(body)
+    do_multi_request 'post', '/api/v2/octet_streams', body.to_json
   end
 
   def watch uri

@@ -36,9 +36,9 @@ describe Intelligentli do
     end
 
     it 'uploads' do
-      body = 'something'
+      body = {some: 'body'}
       expect(HTTParty).to receive(:post)
-        .with("#{server}/api/v2/streams", {headers: headers, body: body} )
+        .with("#{server}/api/v2/streams", {headers: headers, body: body.to_json} )
         .and_return(response)
       subject.upload_stream body
     end

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    intelligentli (0.0.5)
+    intelligentli (0.0.6)
       chronic_duration
       eventmachine
       faye-websocket
