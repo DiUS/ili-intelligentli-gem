@@ -25,7 +25,7 @@ lambda {
   end
 
   Kernel.send :define_method, :run do
-    EM.run { watchers.each(&:call) }
+    EM.run { watchers.each(&:call) } if watchers.length > 0
   end
 }.call
 
