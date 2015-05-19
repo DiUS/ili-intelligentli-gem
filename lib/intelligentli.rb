@@ -9,16 +9,29 @@ class Intelligentli
     @server, @key, @secret = server, key, secret
   end
 
-  def streams
-    do_request 'get', '/api/v2/streams'
+  %i(get put post delete).each do |verb|
+    define_method verb do |uri, body = nil|
+      headers  = Authentication.build_headers @key, @secret, verb, uri, body
+      response = HTTParty.send verb, "#{@server}#{uri}", headers: headers, body: body
+      JSON.parse(response.body, symbolize_names: true)
+    end
   end
 
-  def upload_stream(body)
-    do_request 'post', '/api/v2/streams', body.to_json
-  end
+  %i(multi_post).each do |verb|
+    define_method verb do |uri, body|
+      headers = Authentication.build_headers @key, @secret, verb, uri, nil, nil
+      query   = { metadata: body }
+      body    = JSON.parse(body, symbolize_names: true)
+      filenames = body[:octet_streams].each do |ostream|
+        ostream[:data].each do |point|
+          filename = point[:filename]
+          query[filename.to_sym] = File.new filename
+        end
+      end
 
-  def upload_octet_stream(body)
-    do_multi_request 'post', '/api/v2/octet_streams', body.to_json
+      response = HTTMultiParty.send verb, "#{@server}#{uri}", headers: headers, query: query
+      JSON.parse(response.body, symbolize_names: true)
+    end
   end
 
   def watch uri
@@ -33,27 +46,17 @@ class Intelligentli
     ws.on(:close) { |event| ws = nil }
   end
 
-  private
-
-  def do_request verb, uri, body = nil
-    headers = Authentication.build_headers @key, @secret, verb, uri, body
-    response = HTTParty.send verb, "#{@server}#{uri}", headers: headers, body: body
-    JSON.parse(response.body, symbolize_names: true)
+  # deprecated commands
+  def streams
+    self.get '/api/v2/streams'
   end
 
-  def do_multi_request verb, uri, body
-    headers = Authentication.build_headers @key, @secret, verb, uri, nil, nil
-
-    query = { metadata: body }
-    body = JSON.parse(body, symbolize_names: true)
-    filenames = body[:octet_streams].each do |ostream|
-      ostream[:data].each do |point|
-        filename = point[:filename]
-        query[filename.to_sym] = File.new filename
-      end
-    end
-
-    response = HTTMultiParty.send verb, "#{@server}#{uri}", headers: headers, query: query
-    JSON.parse(response.body, symbolize_names: true)
+  def upload_stream(body)
+    self.post '/api/v2/streams', body.to_json
   end
+
+  def upload_octet_stream(body)
+    self.multi_post '/api/v2/octet_streams', body.to_json
+  end
+
 end
