@@ -12,7 +12,7 @@ class Intelligentli
   %i(get put post delete).each do |verb|
     define_method verb do |uri, body = nil|
       headers  = Authentication.build_headers @key, @secret, verb, uri, body
-      response = HTTParty.send verb, "#{@server}#{uri}", headers: headers, body: body
+      response = HTTParty.send verb, "#{@server}#{uri}", headers: headers, body: body, verify: false
       JSON.parse(response.body, symbolize_names: true)
     end
   end
@@ -29,7 +29,7 @@ class Intelligentli
         end
       end
 
-      response = HTTMultiParty.send verb, "#{@server}#{uri}", headers: headers, query: query
+      response = HTTMultiParty.send verb, "#{@server}#{uri}", headers: headers, query: query, verify: false
       JSON.parse(response.body, symbolize_names: true)
     end
   end
