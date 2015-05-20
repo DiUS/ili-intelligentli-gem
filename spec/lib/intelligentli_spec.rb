@@ -30,7 +30,7 @@ describe Intelligentli do
 
     it 'gets a list' do
       expect(HTTParty).to receive(:get)
-        .with("#{server}/api/v2/streams", {headers: headers, body: nil} )
+        .with("#{server}/api/v2/streams", {headers: headers, body: nil, verify: false} )
         .and_return(response)
       subject.streams
     end
@@ -38,7 +38,7 @@ describe Intelligentli do
     it 'uploads' do
       body = {some: 'body'}
       expect(HTTParty).to receive(:post)
-        .with("#{server}/api/v2/streams", {headers: headers, body: body.to_json} )
+        .with("#{server}/api/v2/streams", {headers: headers, body: body.to_json, verify: false} )
         .and_return(response)
       subject.upload_stream body
     end
