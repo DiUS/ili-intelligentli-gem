@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'intelligentli'
-  s.version     = '0.0.7'
+  s.version     = '0.0.8'
   s.date        = '2015-05-20'
   s.summary     = "Intelligent.li api utils"
   s.description = "A gem for authenticated access to intelligent.li"

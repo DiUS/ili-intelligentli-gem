@@ -17,21 +17,19 @@ class Intelligentli
     end
   end
 
-  %i(multi_post).each do |verb|
-    define_method verb do |uri, body|
-      headers = Authentication.build_headers @key, @secret, verb, uri, nil, nil
-      query   = { metadata: body }
-      body    = JSON.parse(body, symbolize_names: true)
-      filenames = body[:octet_streams].each do |ostream|
-        ostream[:data].each do |point|
-          filename = point[:filename]
-          query[filename.to_sym] = File.new filename
-        end
+  def multi_post uri, body
+    headers = Authentication.build_headers @key, @secret, 'post', uri, nil, nil
+    query   = { metadata: body }
+    body    = JSON.parse(body, symbolize_names: true)
+    filenames = body[:octet_streams].each do |ostream|
+      ostream[:data].each do |point|
+        filename = point[:filename]
+        query[filename.to_sym] = File.new filename
       end
-
-      response = HTTMultiParty.send verb, "#{@server}#{uri}", headers: headers, query: query, verify: false
-      JSON.parse(response.body, symbolize_names: true)
     end
+
+    response = HTTMultiParty.post "#{@server}#{uri}", headers: headers, query: query, verify: false
+    JSON.parse(response.body, symbolize_names: true)
   end
 
   def watch uri
