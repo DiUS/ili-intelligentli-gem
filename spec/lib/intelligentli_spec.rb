@@ -1,4 +1,4 @@
-describe Intelligentli do
+describe Intelligentli::Api do
 
   # request parameters
   let (:server)  { 'http://somewhere' }
@@ -23,26 +23,7 @@ describe Intelligentli do
   end
   after { Timecop.return }
 
-  subject { Intelligentli.new(server, key, secret) }
-
-  context 'streams' do
-    let (:response) { double body: {}.to_json }
-
-    it 'gets a list' do
-      expect(HTTParty).to receive(:get)
-        .with("#{server}/api/v2/streams", {headers: headers, body: nil, verify: false} )
-        .and_return(response)
-      subject.streams
-    end
-
-    it 'uploads' do
-      body = {some: 'body'}
-      expect(HTTParty).to receive(:post)
-        .with("#{server}/api/v2/streams", {headers: headers, body: body.to_json, verify: false} )
-        .and_return(response)
-      subject.upload_stream body
-    end
-  end
+  subject { Intelligentli::Api.new(server, key, secret) }
 
   context 'watch' do
     let(:uri)             { '/uri' }

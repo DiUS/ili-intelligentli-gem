@@ -1,4 +1,4 @@
-describe Authentication do
+describe Intelligentli::Authentication do
 
   # request parameters
   let(:key)          { 'key' }
