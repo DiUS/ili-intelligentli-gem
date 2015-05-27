@@ -66,8 +66,7 @@ describe Intelligentli::Api do
       allow(websocket).to receive(:on).with(:message)
       allow(websocket).to receive(:on).with(:close).and_yield(event)
 
-      subject.watch(uri)
-      expect(websocket.instance_variable_get(:@name)).to be_nil
+      expect{ subject.watch(uri) }.to raise_error(RuntimeError)
     end
 
   end

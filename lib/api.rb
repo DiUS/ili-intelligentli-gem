@@ -43,7 +43,7 @@ module Intelligentli
         message = JSON.parse(payload[:message], symbolize_names: true)
         yield message
       end
-      ws.on(:close) { |event| ws = nil }
+      ws.on(:close) { |event| raise 'Connection closed!' }
     end
 
   end
