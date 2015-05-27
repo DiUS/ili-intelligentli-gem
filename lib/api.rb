@@ -36,7 +36,7 @@ module Intelligentli
 
     def watch uri
       headers = Authentication.build_headers @key, @secret, 'get', uri
-      ws = Faye::WebSocket::Client.new("#{@server}#{uri}", nil, headers: headers)
+      ws = Faye::WebSocket::Client.new("#{@server}#{uri}", nil, headers: headers, ping: 20)
       ws.on(:open) { |event| ws.send('{"message_sequence": 0}') }
       ws.on(:message) do |event|
         payload = JSON.parse(event.data, symbolize_names: true)

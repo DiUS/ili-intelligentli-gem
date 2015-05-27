@@ -34,7 +34,7 @@ describe Intelligentli::Api do
     let(:event)           { double(data: payload) }
 
     it 'makes websocket request' do
-      expect(Faye::WebSocket::Client).to receive(:new).with("#{server}#{uri}", nil, headers: headers).and_return (websocket.as_null_object)
+      expect(Faye::WebSocket::Client).to receive(:new).with("#{server}#{uri}", nil, headers: headers, ping: 20).and_return (websocket.as_null_object)
       subject.watch(uri)
     end
 

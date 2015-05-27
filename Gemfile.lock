@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    intelligentli (0.1.1)
+    intelligentli (0.1.2)
       faye-websocket
       gibberish
       httmultiparty
